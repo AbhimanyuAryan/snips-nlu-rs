@@ -50,19 +50,20 @@ impl CRFSlotFiller {
 
         let tagging_scheme = TaggingScheme::from_u8(model.config.tagging_scheme)?;
         let slot_name_mapping = model.slot_name_mapping;
-        let feature_processor = ProbabilisticFeatureProcessor::new(
-            &model.config.feature_factory_configs, shared_resources.clone())?;
-        let tagger = if let Some(crf_model_file) = model.crf_model_file.as_ref() {
+
+        let (tagger, feature_processor) = if let Some(crf_model_file) = model.crf_model_file.as_ref() {
             let crf_path = path.as_ref().join(crf_model_file);
             let tagger = CRFSuiteTagger::create_from_file(&crf_path)
                 .with_context(|_| format!("Cannot create CRFSuiteTagger from file '{:?}'",
                                           &crf_path))?;
-            Some(Mutex::new(tagger))
+            let feature_processor = ProbabilisticFeatureProcessor::new(
+            &model.config.feature_factory_configs, shared_resources.clone())?;
+            (Some(Mutex::new(tagger)), feature_processor)
         } else {
-            None
+            let feature_processor = ProbabilisticFeatureProcessor::new(&vec![], shared_resources.clone())?;
+            (None, feature_processor)
         };
         let language = Language::from_str(&model.language_code)?;
-
         Ok(Self {
             language,
             tagging_scheme,

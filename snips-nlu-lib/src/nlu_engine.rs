@@ -294,6 +294,11 @@ mod tests {
         // When / Then
         let nlu_engine = SnipsNluEngine::from_path(path);
         assert!(nlu_engine.is_ok());
+        let intent_filter: &[IntentName] = &vec!["getInfos4".to_string()][..];
+        let res = nlu_engine
+            .unwrap()
+            .parse("qu'est-ce que c'est cette musique la la la", None).unwrap();
+        println!("res: {:?}", res);
     }
 
     #[test]
